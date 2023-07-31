@@ -48,9 +48,7 @@ st.header("Globalize Text")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("Often professionals would like to improve their emails, but don't have the skills to do so. \n\n This tool \
-                will help you improve your email skills by converting your emails into a more professional format. This tool \
-                is powered by [LangChain](https://langchain.com/) and [OpenAI](https://openai.com) ")
+    st.markdown("Write Better Emails!")
 
 with col2:
     pass
@@ -86,7 +84,7 @@ if len(email_input.split(" ")) > 700:
 
 def update_text_with_example():
     print ("in updated")
-    st.session_state.email_input = "Sally I am starts work at yours monday from dave"
+    st.session_state.email_input = email_input
 
 st.button("*See An Example*", type='secondary', help="Click to see an example of the email you will be converting.", on_click=update_text_with_example)
 
