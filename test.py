@@ -1,108 +1,97 @@
+import os
+
 import streamlit as st
-from langchain import PromptTemplate
-from langchain.llms import OpenAI
+from dotenv import load_dotenv
 
-openai_api_key = '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'
+from chains import get_cover_letter_langchain_normal_prompts, get_cover_letter_langchain_chat_prompts, \
+    get_cover_letter_langchain_no_chain, get_cover_letter_no_langchain
+from utils import read_docx, write_string_to_word
 
-template = """
-    Below is an email that may be poorly worded.
-    Your goal is to:
-    - Properly format the email
-    - Convert the input text to a specified tone
-    - Convert the input text to a specified dialect
+load_dotenv()
 
-    Here are some examples different Tones:
-    - Formal: We went to Barcelona for the weekend. We have a lot of things to tell you.
-    - Informal: Went to Barcelona for the weekend. Lots to tell you.  
+chat_model_dict = {
+    'LangChain Prompt Template': get_cover_letter_langchain_normal_prompts,
+    'Langchain ChatPrompt Template': get_cover_letter_langchain_chat_prompts,
+    "Langchain no chain": get_cover_letter_langchain_no_chain,
+    'Custom code': get_cover_letter_no_langchain
+}
 
-    Here are some examples of words in different dialects:
-    - American: French Fries, cotton candy, apartment, garbage, cookie, green thumb, parking lot, pants, windshield
-    - British: chips, candyfloss, flag, rubbish, biscuit, green fingers, car park, trousers, windscreen
+def build_streamlit_app():
+    # Set the title of the Streamlit app to 'Cover Letter Generator'
+    st.title('Cover Letter Generator')
 
-    Example Sentences from each dialect:
-    - American: I headed straight for the produce section to grab some fresh vegetables, like bell peppers and zucchini. After that, I made my way to the meat department to pick up some chicken breasts.
-    - British: Well, I popped down to the local shop just the other day to pick up a few bits and bobs. As I was perusing the aisles, I noticed that they were fresh out of biscuits, which was a bit of a disappointment, as I do love a good cuppa with a biscuit or two.
+    # Create an input box in the sidebar of the app for the OpenAI API key
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if openai_api_key is None:
+        openai_api_key = st.sidebar.text_input('OpenAI API Key')
 
-    Please start the email with a warm introduction. Add the introduction if you need to.
-    
-    Below is the email, tone, and dialect:
-    TONE: {tone}
-    DIALECT: {dialect}
-    EMAIL: {email}
-    
-    YOUR {dialect} RESPONSE:
-"""
+    cover_letter_type = st.sidebar.selectbox(
+        'Select the cover letter generation method',
+        tuple(chat_model_dict.keys())
+    )
 
-prompt = PromptTemplate(
-    input_variables=["tone", "dialect", "email"],
-    template=template,
-)
+    model = st.sidebar.selectbox(
+        'Select the model you wish to use',
+        (
+            'gpt-3.5-turbo',
+            'gpt-4'
+        )
+    )
 
-def load_LLM(openai_api_key):
-    """Logic for loading the chain you want to use should go here."""
-    # Make sure your openai_api_key is set as an environment variable
-    llm = OpenAI(temperature=.7, openai_api_key=openai_api_key)
-    return llm
+    # Create a file uploader widget for uploading a docx file (the user's resume)
+    resume = st.file_uploader("Upload your Resume", type='docx')
+    resume_text = None
 
-st.set_page_config(page_title="Globalize Email", page_icon=":robot:")
-st.header("Globalize Text")
+    # If a resume has been uploaded, read the text from the docx file
+    if resume is not None:
+        resume_text = read_docx(resume)
 
-col1, col2 = st.columns(2)
+    # Create a text input area for pasting the company description
+    job_description = st.text_area('Paste the job description here')
 
-with col1:
-    st.markdown("Often professionals would like to improve their emails, but don't have the skills to do so. \n\n This tool \
-                will help you improve your email skills by converting your emails into a more professional format. This tool \
-                is powered by [LangChain](https://langchain.com/) and [OpenAI](https://openai.com) ")
+    # Create a text input area for pasting any additional company information
+    additional_information = st.text_area('(Optional) Paste additional company information here')
 
-with col2:
-    pass
+    # Create a button for generating the cover letter
+    if st.button('Generate Cover Letter'):
+        # Check if the OpenAI key, resume, and company description are provided
+        if not openai_api_key or not openai_api_key.startswith('sk-'):
+            # Display a warning if the OpenAI API key is not provided or is invalid
+            st.warning('Please enter your OpenAI API key!', icon='⚠️')
+        elif resume is None:
+            # Display a warning if the resume has not been uploaded
+            st.warning('Please upload your Resume!', icon='⚠️')
+        elif not job_description:
+            # Display a warning if the company description is not provided
+            st.warning('Please enter the company description!', icon='⚠️')
+        else:
+            # If all conditions are met, call the cover letter generation function
+            # Show a spinner while the function is running
+            with st.spinner('Generating your cover letter...'):
+                result = chat_model_dict[cover_letter_type](
+                    resume=resume_text,
+                    job_description=job_description,
+                    additional_information=additional_information,
+                    openai_api_key=openai_api_key,
+                    model=model
+                )
+            # Display a success message when the cover letter generation is completed
+            st.success('Cover letter generation completed!')
 
-st.markdown("## Enter Your Email To Convert")
+            # Write the generated cover letter to the app
+            st.write('**Your Generated Cover Letter:**')
+            st.write(result)
+            # Create a Word document
+            write_string_to_word(result, filename="cover_letter.docx")
 
-def get_api_key():
-    input_text = st.text_input(label="OpenAI API Key ",  placeholder="Ex: sk-2twmA8tfCb8un4...", key="openai_api_key_input")
-    return input_text
+            # Create a download button for the cover letter document
+            with open("cover_letter.docx", "rb") as file:
+                btn = st.download_button(
+                    "Download Cover Letter",
+                    file,
+                    file_name="Cover_Letter.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                )
 
-openai_api_key = get_api_key()
-
-col1, col2 = st.columns(2)
-with col1:
-    option_tone = st.selectbox(
-        'Which tone would you like your email to have?',
-        ('Formal', 'Informal'))
-    
-with col2:
-    option_dialect = st.selectbox(
-        'Which English Dialect would you like?',
-        ('American', 'British'))
-
-def get_text():
-    input_text = st.text_area(label="Email Input", label_visibility='collapsed', placeholder="Your Email...", key="email_input")
-    return input_text
-
-email_input = get_text()
-
-if len(email_input.split(" ")) > 700:
-    st.write("Please enter a shorter email. The maximum length is 700 words.")
-    st.stop()
-
-def update_text_with_example():
-    print ("in updated")
-    st.session_state.email_input = "Sally I am starts work at yours monday from dave"
-
-st.button("*See An Example*", type='secondary', help="Click to see an example of the email you will be converting.", on_click=update_text_with_example)
-
-st.markdown("### Your Converted Email:")
-
-if email_input:
-    if not openai_api_key:
-        st.warning('Please insert OpenAI API Key. Instructions [here](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key)', icon="⚠️")
-        st.stop()
-
-    llm = load_LLM(openai_api_key=openai_api_key)
-
-    prompt_with_email = prompt.format(tone=option_tone, dialect=option_dialect, email=email_input)
-
-    formatted_email = llm(prompt_with_email)
-
-    st.write(formatted_email)
+if __name__ == '__main__':
+    build_streamlit_app()
