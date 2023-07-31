@@ -1,6 +1,10 @@
+pip install langchain
+
 import streamlit as st
 from langchain import PromptTemplate
 from langchain.llms import OpenAI
+
+openai_api_key = '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'
 
 template = """
     Below is an email that may be poorly worded.
