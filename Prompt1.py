@@ -3,35 +3,17 @@ from langchain import PromptTemplate
 from langchain.llms import OpenAI
 
 template = """
-    Below are paragraphs that contain incorrect grammar.
-    Your goal is to:
-    - Correct the grammar of the paragraphs
-    - Convert the input text to a specified tone
-    - Convert the input text to a specified dialect
-
-    Here are some examples different Tones:
-    - Formal: It was great to meet you. 
-    - Warm: It was wonderful to meet you!  
-    - Casual: Great to meet you!
-
-    Here are some examples of words in different dialects:
-    - American: French Fries, cotton candy, apartment, garbage, cookie, green thumb, parking lot, pants, windshield
-    - British: chips, candyfloss, flag, rubbish, biscuit, green fingers, car park, trousers, windscreen
-
-    Example Sentences from each dialect:
-    - American: I headed straight for the produce section to grab some fresh vegetables, like bell peppers and zucchini. After that, I made my way to the meat department to pick up some chicken breasts.
-    - British: Well, I popped down to the local shop just the other day to pick up a few bits and bobs. As I was perusing the aisles, I noticed that they were fresh out of biscuits, which was a bit of a disappointment, as I do love a good cuppa with a biscuit or two.
-
-    Below is the text, tone, and dialect:
-    TONE: {tone}
-    DIALECT: {dialect}
+    Below are paragraphs that contain incorrect grammar. Your goal is to 
+    correct the grammar of the paragraphs with minimum changes to the original paragraphs.
+    
+    Below is the text:
     PARAGRAPHS: {text}
     
-    YOUR {dialect} RESPONSE:
+    YOUR RESPONSE:
 """
 
 prompt = PromptTemplate(
-    input_variables=["tone", "dialect", "text"],
+    input_variables=["text"],
     template=template,
 )
 
