@@ -26,14 +26,6 @@ def load_LLM(openai_api_key):
 st.set_page_config(page_title="Grammar Genie", page_icon=":robot:")
 st.header("Grammar Genie")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("Beautify your writing")
-
-with col2:
-    pass
-
 st.markdown("## Enter Your Paragraphs To Beautify")
 
 def get_api_key():
@@ -42,26 +34,12 @@ def get_api_key():
 
 openai_api_key = get_api_key()
 
-col1, col2 = st.columns(2)
-with col1:
-    option_tone = st.selectbox(
-        'Which tone would you like your paragraphs to have?',
-        ('Formal', 'Warm', 'Casual'))
-    
-with col2:
-    option_dialect = st.selectbox(
-        'Which English Dialect would you like?',
-        ('American', 'British'))
-
 def get_text():
     input_text = st.text_area(label="Text Input", label_visibility='collapsed', placeholder="Your Email...", key="text_input")
     return input_text
 
 text_input = get_text()
 
-# if len(text_input.split(" ")) > 700:
-#     st.write("Please enter a shorter email. The maximum length is 700 words.")
-#     st.stop()
 
 def update_text_with_example():
     print ("in updated")
@@ -78,7 +56,7 @@ if text_input:
 
     llm = load_LLM(openai_api_key=openai_api_key)
 
-    prompt_with_text = prompt.format(tone=option_tone, dialect=option_dialect, email=text_input)
+    prompt_with_text = prompt.format(text=text_input)
 
     formatted_text = llm(prompt_with_text)
 
