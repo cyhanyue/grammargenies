@@ -72,13 +72,13 @@ with col2:
         ('American', 'British'))
 
 def get_text():
-    input_text = st.text_area(label="Text Input", label_visibility='collapsed', placeholder="Your Email...", key="text_input")
+    input_text = st.text_area(label="Text Input", label_visibility='collapsed', placeholder="Your Text...", key="text_input")
     return input_text
 
 text_input = get_text()
 
 # if len(text_input.split(" ")) > 700:
-#     st.write("Please enter a shorter email. The maximum length is 700 words.")
+#     st.write("Please enter a shorter paragraph. The maximum length is 700 words.")
 #     st.stop()
 
 def update_text_with_example():
@@ -96,7 +96,7 @@ if text_input:
 
     llm = load_LLM(openai_api_key=openai_api_key)
 
-    prompt_with_text = prompt.format(tone=option_tone, dialect=option_dialect, email=text_input)
+    prompt_with_text = prompt.format(tone=option_tone, dialect=option_dialect, text=text_input)
 
     formatted_text = llm(prompt_with_text)
 
