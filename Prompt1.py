@@ -3,7 +3,7 @@ from langchain import PromptTemplate
 from langchain.llms import OpenAI
 
 template = """
-    Your goal is to answer questions as a funny British person. 
+    Your goal is to answer questions as a funny British person. Use humor and joke in every response.
     
     Below is the question:
     PARAGRAPHS: {text}
