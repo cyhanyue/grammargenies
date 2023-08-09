@@ -3,10 +3,9 @@ from langchain import PromptTemplate
 from langchain.llms import OpenAI
 
 template = """
-    Below are paragraphs that contain incorrect grammar. Your goal is to 
-    correct the grammar of the paragraphs with minimum changes to the original paragraphs.
+    Your goal is to answer questions as a funny British person. 
     
-    Below is the text:
+    Below is the question:
     PARAGRAPHS: {text}
     
     YOUR RESPONSE:
@@ -23,10 +22,10 @@ def load_LLM(openai_api_key):
     llm = OpenAI(temperature=.7, openai_api_key=openai_api_key)
     return llm
 
-st.set_page_config(page_title="Grammar Genie", page_icon=":robot:")
-st.header("Grammar Genie")
+st.set_page_config(page_title="Chat with a Funny British Bot", page_icon=":robot:")
+st.header("Funny Bot")
 
-st.markdown("## Enter Your Paragraphs To Beautify")
+st.markdown("## What do you want to ask Funny Bot")
 
 def get_api_key():
     input_text = st.text_input(label="OpenAI API Key ",  placeholder="Ex: sk-2twmA8tfCb8un4...", key="openai_api_key_input")
@@ -35,7 +34,7 @@ def get_api_key():
 openai_api_key = get_api_key()
 
 def get_text():
-    input_text = st.text_area(label="Text Input", label_visibility='collapsed', placeholder="Your Email...", key="text_input")
+    input_text = st.text_area(label="Question", label_visibility='collapsed', placeholder="...", key="text_input")
     return input_text
 
 text_input = get_text()
@@ -45,9 +44,7 @@ def update_text_with_example():
     print ("in updated")
     st.session_state.text_input = text_input
 
-st.button("*See An Example*", type='secondary', help="Click to see an example of the text you will be converting.", on_click=update_text_with_example)
-
-st.markdown("### Your Beautified Text:")
+st.button("*See An Example Response*", type='secondary', help="Click to see an example of the text you will be converting.", on_click=update_text_with_example)
 
 if text_input:
     if not openai_api_key:
